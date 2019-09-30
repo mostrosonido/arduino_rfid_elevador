@@ -1,2 +1,155 @@
-void setup()
-void loop()
+#include <MFRC522.h>
+#include <SPI.h>
+
+/*
+Pins	SPI	       UNO     MEGA
+1 (NSS) SAD (SS)   10      53
+2       SCK        13      52
+3       MOSI       11      51
+4       MISO       12      50
+5       IRQ        *       *
+6       GND        GND     GND
+7       RST        9       5
+8      +3.3V (VCC) 3V3     3V3
+* Not needed
+1 on ICPS header
+*/
+#define SAD 10
+#define RST 9
+int RELE = 4;
+int LED_NO = 5;  // led rojo
+int LED_OK = 6;  // led verde
+int count = 0;
+unsigned long old_time;
+unsigned long actual_time;
+unsigned long lock;
+MFRC522 mfrc_1(SAD, RST);
+
+
+void setup(){
+  SPI.begin();
+  Serial.begin(115200);
+  Serial.println("BUSCANDO MFRC522´s.");
+  mfrc_1.begin();
+  byte variable1 = mfrc_1.getFirmwareVersion();
+  if (! variable1){
+    Serial.print("NO SE ENCONTRO MFRC522 ");
+    while(1); //halt
+  }
+  Serial.print("BUSCANDO CHIP MFRC522 ");
+  Serial.print("FIRMWARE VERSION. 0x");
+  Serial.print(variable1, HEX);
+  Serial.println(".");
+  delay(500);
+  pinMode(RELE, OUTPUT);
+  pinMode(LED_NO, OUTPUT);
+  pinMode(LED_OK, OUTPUT);
+  old_time = millis();
+}
+
+#define TARJETA 3
+#define LLAVE 3
+//CLAVE DE LA TAJETAS
+byte Autorizado[TARJETA][6] = {{0xC3, 0xF7, 0xDB, 0x00, 0xFF, 0xFF,}, // tarjeta 1
+			       {0x06, 0x27, 0xAD, 0x35, 0xFF, 0xFF,}, // tarjeta 1
+			       {0xE3, 0xD8, 0xBE, 0x02, 0xFF, 0xFF,}};// tarjeta 3
+
+// CLAVE DEL LLAVEROS
+byte Autorizado2[LLAVE][6] = {{0x84, 0x2A, 0x28, 0x6F, 0xFF, 0xFF,},  // llavero 1
+			      {0x01, 0xA8, 0x92, 0x2B, 0xFF, 0xFF,},  // llavero 2
+			      {0x26, 0xCB, 0x2E, 0x00, 0xFF, 0xFF,}}; // llavero 3
+
+void imprimeClave(byte *serial);
+boolean esIgual(byte *key, byte *serial);
+boolean chekaKey(byte *serial);
+
+void loop(){
+  LECTURA_RFID_1();
+}
+
+void LECTURA_RFID_1(){
+  byte status;
+  byte data[MAX_LEN];
+  byte serial[5];
+  status = mfrc_1.requestTag(MF1_REQIDL, data);
+  if (status == MI_OK){
+    status = mfrc_1.antiCollision(data);
+    memcpy(serial, data, 5);
+    if(chekaKey(serial)){
+      Serial.print("AUTORIZADO");
+      imprimeClave(serial);
+      Serial.println("TARJETA CORRECTA");
+      digitalWrite(LED_OK, HIGH);
+      digitalWrite(LED_NO, LOW);
+      digitalWrite(RELE, LOW);
+      delay(1000);//500
+      count = 0;
+    }
+    else{
+      actual_time = millis();
+      Serial.print("NO AUTORIZADO");
+      imprimeClave(serial);
+      Serial.println("TARJETA INCORRECTA");
+      count++;
+      delay(100);
+      ////// estado de bloqueado //////
+      lock = actual_time - old_time;
+      if (count >= 3){
+        while (lock < 6000){// bloqueado durante minuto
+          actual_time = millis();
+          lock = actual_time - old_time;
+          digitalWrite(LED_OK, HIGH);
+          digitalWrite(LED_NO, LOW);
+          delay(100);
+          digitalWrite(LED_NO, HIGH);
+          digitalWrite(LED_OK, LOW);
+          delay(100);
+        }
+        count = 0;
+        old_time = actual_time;
+      }
+      else{  // indicador de tarjeta incorrecta
+        for (int i = 0; i < 4; i++){
+          digitalWrite(LED_NO, LOW);
+          delay(200);
+          digitalWrite(LED_NO, HIGH);
+          delay(200);
+        }
+      }
+    }
+    mfrc_1.haltTag();
+  }
+  delay(200);
+  digitalWrite(LED_OK, LOW);
+  digitalWrite(LED_NO, HIGH);
+  digitalWrite(RELE, HIGH);
+}
+
+boolean esIgual(byte *key, byte *serial){
+  for (int i = 0; i < 4; i++){
+    if (key[i] != serial[i]){
+      return false;
+    }
+  }
+  return true;
+}
+
+boolean chekaKey(byte *serial){
+  for(int i = 0; i < TARJETA; i++){
+    if(esIgual(serial, Autorizado[i]))
+    return true;
+  }
+  for(int i = 0; i < LLAVE; i++){
+    if(esIgual(serial, Autorizado2[i]))
+    return true;
+  }
+  return false;
+}
+
+void imprimeClave(byte *serial){
+  Serial.print("CLAVE: ");
+  for (int i = 0; i < 4; i++){
+    Serial.print(serial[i], HEX);
+    Serial.print(" ");
+  }
+}
