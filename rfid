@@ -80,6 +80,7 @@ void LECTURA_RFID_1(){
       imprimeClave(serial);
       Serial.println("TARJETA CORRECTA");
       digitalWrite(LED_OK, HIGH);
+      //agregar instruccion a relevador      
       digitalWrite(LED_NO, LOW);
       digitalWrite(RELE, LOW);
       delay(1000);//500
