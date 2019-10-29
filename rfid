@@ -5,7 +5,10 @@
  const int ledr = 3;
  String tarjetas[] = {"28 C9 90 29",
                       "EA 95 9F 15",
-                      "04 09 BC A2 CB 41 81",};
+                      "04 09 BC A2 CB 41 81",
+                      "43 33 D0 1F",
+                      "73 2D 20 F6",
+                      "DB 89 A3 F6",};
 #define SS_PIN 10
 #define RST_PIN 9
 MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
@@ -51,7 +54,7 @@ void loop()
   Serial.print("Message : ");
   content.toUpperCase();
   int bandera = 0;
-  for (int i=0; i<3; i++){ //incrementar el ciclo si se agrega una tarjeta en el arreglo
+  for (int i=0; i<7; i++){ //incrementar el ciclo si se agrega una tarjeta en el arreglo
   if (content.substring(1) == tarjetas[i]) //change here the UID of the card/cards that you want to give access
   {
     bandera = 1;
