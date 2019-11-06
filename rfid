@@ -54,7 +54,7 @@ void loop()
   Serial.print("Message : ");
   content.toUpperCase();
   int bandera = 0;
-  for (int i=0; i<sizeof(tarjetas); i++){ 
+  for (int i=0; i<sizeof(tarjetas); i++){ //compara la lectura de la tarjeta con los valores del arreglo
   if (content.substring(1) == tarjetas[i]) 
   {
     bandera = 1;
