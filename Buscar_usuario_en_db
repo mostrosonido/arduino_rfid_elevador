@@ -1,0 +1,79 @@
+#include <Ethernet.h>
+#include <MySQL_Connection.h>
+#include <MySQL_Cursor.h>
+
+int contador = 0;
+char num[] = "'33 23 34 45'";
+
+
+byte mac_addr[] ={  , , , , , };// aqui la mac adres que quieras
+IPAddress ip(0,0,0,0); //ip si no tienes DNS si tienes DNS hay que trabajar con otras librerias
+IPAddress gateway( 0, 0, 0, 0);
+IPAddress subnet(0, 0, 0, 0);
+IPAddress server_addr(0,0,0,0); //ip del servidor en el que se encuentra la base de datos 
+char user[] = "root";     //usuario  de tu server mysql         
+char password[] = "pass"; //tu pass
+
+const char query2[] = "SELECT usuario FROM elevador.usuarios WHERE tarjeta = %ls;"; //el %ls es el parametro
+char query[70]; //esta variable la usamos para sumarle el parametro a la consulta mas adelante
+
+EthernetClient client;
+MySQL_Connection conn((Client *)&client);
+MySQL_Cursor cur = MySQL_Cursor(&conn);
+
+void setup() {
+   pinMode(7, INPUT_PULLUP);  //Declarar el pin 7 como entrada con pull-up
+   Serial.begin(9600); // Iniciar el puerto serial a 9600 BAUDs
+   Serial.println("Presiona el boton");
+
+}
+
+void loop() {
+  row_values *row = NULL;
+  //Leer el estado de la entrada digital 7
+  int f = 0;
+  int estadoBoton = digitalRead(7);
+  if(estadoBoton == 1)
+  {
+   return; 
+   }
+  
+  if(estadoBoton == 0){
+    //El boton esta activado
+    contador = 1;
+    Serial.print("Boton activado: ");
+    Serial.println(contador);
+    delay(1000);
+      Serial.begin(9600);
+  while (!Serial); // wait for serial port to connect
+  Ethernet.begin(mac_addr,ip,subnet,gateway);
+  Serial.println("Conectando...");
+  if (conn.connect(server_addr, 3306, user, password)) {
+    delay(1000);
+    // obtener datos y mostrarlos en el monitor serial
+    MySQL_Cursor *cur_mem = new MySQL_Cursor(&conn);
+    sprintf(query, query2, num);  
+    cur_mem->execute(query);
+    column_names *columns = cur_mem->get_columns();
+  do {
+    row = cur_mem->get_next_row();
+    if (row != NULL) {
+        Serial.print("Tarjeta = ");
+        Serial.println(row->values[f]);
+    }
+    
+  } while (row != NULL);
+  delete cur_mem;
+  delay(500);
+    
+  }
+  else
+    Serial.println("Conexion fallida");
+  conn.close();
+  delay(500);
+  Serial.println("Presiona el boton");
+
+    
+    }
+
+}
