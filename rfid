@@ -1,3 +1,17 @@
+ /*	
+ Pins	SPI	       UNO     MEGA	
+ 1 (NSS) SAD (SS)   10      53	
+ 2       SCK        13      52	  
+ 3       MOSI       11      51	  
+ 4       MISO       12      50	  
+ 5       IRQ        *       *	  
+ 6       GND        GND     GND	  
+ 7       RST        9       5	  
+ 8      +3.3V (VCC) 3V3     3V3	  
+ * Not needed	  
+ 1 on ICPS header	
+ */
+ 
 #include <SPI.h>
 #include <MFRC522.h>
  const int rele = 4;
