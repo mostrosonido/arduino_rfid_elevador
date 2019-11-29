@@ -22,12 +22,16 @@
                       "04 09 BC A2 CB 41 81",
                       "43 33 D0 1F",
                       "73 2D 20 F6",
-                      "DB 89 A3 F6"};
+                      "DB 89 A3 F6",
+                      "67 16 D1 4D",
+                      "97 02 C8 74",//inger
+                      "5B 45 B7 F6",};//pancho
+
 #define SS_PIN 10
 #define RST_PIN 9
+
 MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
 
- 
 void setup() 
 {
   Serial.begin(9600);   // Initiate a serial communication
@@ -83,7 +87,6 @@ void loop()
     digitalWrite(rele,LOW);
     digitalWrite(ledv,LOW);
   }
- 
  else   {
     Serial.println(" Access denied");
     digitalWrite(ledr,HIGH);
