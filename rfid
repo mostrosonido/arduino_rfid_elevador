@@ -25,7 +25,11 @@
                       "DB 89 A3 F6",
                       "67 16 D1 4D",
                       "97 02 C8 74",//inger
-                      "5B 45 B7 F6",};//pancho
+                      "5B 45 B7 F6",
+                      "9B 58 86 1B",
+                      "07 5D 2B 4E",
+                      "A7 DC C1 4D",
+                      "2B DD 8A 1B",};//pancho
 
 #define SS_PIN 10
 #define RST_PIN 9
